@@ -1,0 +1,3 @@
+// Lists all databases (physically created)
+
+show dbs
