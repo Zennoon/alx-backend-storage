@@ -1,0 +1,4 @@
+// Uses regex to filter documents to those whose name value
+// starts wuth 'Holberton'
+
+db.school.find({'name': /^Holberton.*$/})
