@@ -1,0 +1,3 @@
+// Removes all documents in the 'school' collection matching the query
+
+db.school.remove({'name': 'Holberton school'})
