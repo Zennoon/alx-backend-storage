@@ -7,7 +7,7 @@ Contains:
 """
 import redis
 import uuid
-from typing import Union
+from typing import Any, Callable, Union
 
 
 class Cache:
@@ -31,3 +31,31 @@ class Cache:
         key = uuid.uuid4()
         self._redis.set(str(key), data)
         return (str(key))
+
+    def get(self, key: str, fn: Callable=None) -> Any:
+        """
+        Receives a key and returns the value stored after using the
+        given callback function (if given) to convert the bytes that
+        redis returns by default
+        """
+        val = self._redis.get(key)
+        if val:
+            if fn:
+                return fn(val)
+        return (val)
+
+    def get_int(self, key: str) -> Union[int, None]:
+        """
+        Gets a value from redis server and attempts to convert to
+        int using the get method with the int() function passed as
+        callback
+        """
+        return get(key, int)
+
+    def get_str(self, key: str) -> Union[str, None]:
+        """
+        Gets a value from redis server and attempts to convert to
+        str using the get method with the .decode('utf-8') function
+        passed as lambda callback
+        """
+        return get(key, lambda val: val.decode("utf-8"))
