@@ -1,0 +1,1 @@
+This directory was created on August 14, 2024 for the ALX SE backend project about the basics of Redis, a server user for caching or as a full pledged database.
