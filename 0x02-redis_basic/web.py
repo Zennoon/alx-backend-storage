@@ -27,6 +27,6 @@ def get_page(url: str) -> str:
         with conn.pipeline() as pipe:
             pipe.multi()
             pipe.set(url, text)
-            pipe.expire(url, timedelta(seconds=10))
+            pipe.expire(url, timedelta(seconds=100))
             pipe.execute()
     return text
