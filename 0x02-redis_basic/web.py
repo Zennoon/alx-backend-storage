@@ -18,15 +18,15 @@ import requests
 
 def get_page(url: str) -> str:
     """Receives a url and retrieves the decoded (utf-8) content"""
-    if not url or len(url.strip()) == 0:
+    if url is None or len(url.strip()) == 0:
         return ''
-    conn = redis.Redis()
-    count_key = "count:{}".format(url)
-    text_key = "result:{}".format(url)
-    result = conn.get(text_key)
+    redis_store = redis.Redis()
+    res_key = 'result:{}'.format(url)
+    req_key = 'count:{}'.format(url)
+    result = redis_store.get(res_key)
     if result is not None:
-        conn.incr(count_key)
+        redis_store.incr(req_key)
         return result
-    result = requests.get(url).text
-    conn.setex(text_key, timedelta(seconds=10), result)
+    result = requests.get(url).content.decode('utf-8')
+    redis_store.setex(res_key, timedelta(seconds=10), result)
     return result
