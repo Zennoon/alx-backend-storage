@@ -18,7 +18,12 @@ import requests
 def get_page(url: str) -> str:
     """Receives a url and retrieves the decoded (utf-8) content"""
     conn = redis.Redis()
-    key = "count:{}".format(url)
-    conn.incr(key, 1)
-    conn.expire(key, 10)
-    return requests.get(url).text
+    try:
+        text = requests.get(url).text
+    except Exception:
+        pass
+    else:
+        key = "count:{}".format(url)
+        conn.incr(key, 1)
+        conn.expire(key, 10)
+    return text
