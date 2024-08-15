@@ -18,6 +18,8 @@ import requests
 
 def get_page(url: str) -> str:
     """Receives a url and retrieves the decoded (utf-8) content"""
+    if not url or len(url.strip()) == 0:
+        return ''
     conn = redis.Redis()
     count_key = "count:{}".format(url)
     text_key = "result:{}".format(url)
@@ -25,6 +27,6 @@ def get_page(url: str) -> str:
     if result is not None:
         conn.incr(count_key)
         return result
-    result = requests.get(url).content.decode('utf-8')
+    result = requests.get(url).text
     conn.setex(text_key, timedelta(seconds=10), result)
     return result
