@@ -11,9 +11,14 @@ from typing import Any, Awaitable, Callable, Type, Union
 from functools import wraps
 
 
-def call_history(method):
+def call_history(method: Callable) -> Callable:
+    """
+    Function decorator that returns a function to record
+    input and output data of the wrapped method
+    """
     @wraps(method)
-    def record_method_io(self, *args):
+    def record_method_io(self, *args) -> Any:
+        """Stores input (args) and output of method in redis"""
         self._redis.rpush("{}:inputs".format(method.__qualname__), str(args))
         output = method(self, *args)
         self._redis.rpush("{}:outputs".format(method.__qualname__), output)
@@ -21,9 +26,17 @@ def call_history(method):
     return record_method_io
 
 
-def count_calls(method):
+def count_calls(method: Callable) -> Callable:
+    """
+    Decorator that returns a function to store the number
+    of times the wrapped function/method has been called
+    """
     @wraps(method)
-    def incr_call_counter(self, *args, **kwargs):
+    def incr_call_counter(self, *args, **kwargs) -> Any:
+        """
+        Increments/stores the number of times the method has been called
+        in redis
+        """
         self._redis.incr(method.__qualname__, 1)
         return method(self, *args, **kwargs)
     return incr_call_counter
@@ -82,7 +95,7 @@ class Cache:
         return self.get(key, lambda val: val.decode("utf-8"))
 
 
-def replay(method):
+def replay(method: Callable) -> None:
     """
     Replays the history of a method of the Cache class
     """
@@ -90,7 +103,7 @@ def replay(method):
     method_name = method.__qualname__
     count = conn.get(method_name)
     if count:
-        count = count.decode("utf-8")
+        count = count.decode("utf-8") #type: ignore
 
     print("{} was called {} times:".format(method_name, count))
     inputs = conn.lrange(
@@ -99,7 +112,7 @@ def replay(method):
     outputs = conn.lrange(
         "{}:outputs".format(method_name), 0, -1
     )
-    zipped = zip(inputs, outputs)
+    zipped = zip(inputs, outputs) # type: ignore
 
     for inp, outp in zipped:
         print("{}(*{}) -> {}".format(
