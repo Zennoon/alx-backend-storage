@@ -103,7 +103,7 @@ def replay(method: Callable) -> None:
     method_name = method.__qualname__
     count = conn.get(method_name)
     if count:
-        count = count.decode("utf-8") #type: ignore
+        count = count.decode("utf-8")  # type: ignore
 
     print("{} was called {} times:".format(method_name, count))
     inputs = conn.lrange(
@@ -112,7 +112,7 @@ def replay(method: Callable) -> None:
     outputs = conn.lrange(
         "{}:outputs".format(method_name), 0, -1
     )
-    zipped = zip(inputs, outputs) # type: ignore
+    zipped = zip(inputs, outputs)  # type: ignore
 
     for inp, outp in zipped:
         print("{}(*{}) -> {}".format(
