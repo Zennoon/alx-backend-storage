@@ -16,31 +16,22 @@ import json
 import redis
 import requests
 
-store = redis.Redis()
+conn = redis.Redis()
 
 
-def count_url_access(method):
-    """ Decorator counting how many times
-    a URL is accessed """
-    @wraps(method)
-    def wrapper(url):
-        cached_key = "cached:" + url
-        cached_data = store.get(cached_key)
-        if cached_data:
-            return cached_data.decode("utf-8")
-
-        count_key = "count:" + url
-        html = method(url)
-
-        store.incr(count_key)
-        store.set(cached_key, html)
-        store.expire(cached_key, 10)
-        return html
-    return wrapper
-
-
-@count_url_access
 def get_page(url: str) -> str:
-    """ Returns HTML content of a url """
-    res = requests.get(url)
-    return res.text
+    """Receives a url and retrieves the decoded (utf-8) content"""
+    if not url or len(url.strip()) == 0:
+        return ''
+    text = conn.get(url)
+    count_key = "count:{}".format(url)
+    conn.incr(count_key, 1)
+    if not text:
+        try:
+            text = requests.get(url).text
+        except Exception:
+            return ''
+        else:
+            conn.set(url, json.dumps(text))
+            conn.expire(url, timedelta(seconds=10))
+    return str(json.loads(text.decode('utf-8')))
