@@ -18,24 +18,15 @@ import requests
 conn = redis.Redis()
 
 
-def count_requests(method: Callable) -> Callable:
-    """ Decortator for counting """
-    @wraps(method)
-    def wrapper(url):  # sourcery skip: use-named-expression
-        """ Wrapper for decorator """
-        conn.incr("count:{}".format(url))
-        cached_html = conn.get(f"cached:{url}")
-        if cached_html:
-            return cached_html.decode('utf-8')
-        html = method(url)
-        conn.setex(f"cached:{url}", 10, html)
-        return html
-
-    return wrapper
-
-
-@count_requests
 def get_page(url: str) -> str:
-    """ Obtain the HTML content of a  URL """
-    req = requests.get(url)
-    return req.text
+    """Receives a url and retrieves the decoded (utf-8) content"""
+    if not url or len(url.strip()) == 0:
+        return ''
+    text = conn.get(url).decode('utf-8')
+    count_key = "count:{}".format(url)
+    conn.incr(count_key, 1)
+    if not text:
+        text = requests.get(url).text
+        conn.set(url, text)
+        conn.expire(url, timedelta(seconds=10))
+    return text
