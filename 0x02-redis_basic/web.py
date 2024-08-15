@@ -19,16 +19,14 @@ import requests
 def get_page(url: str) -> str:
     """Receives a url and retrieves the decoded (utf-8) content"""
     conn = redis.Redis()
-    try:
+    text = conn.get(url)
+    count_key = "count:{}".format(url)
+    conn.incr(count_key, 1)
+    if not text:
         text = requests.get(url).text
-    except Exception:
-        pass
-    else:
-        count_key = "count:{}".format(url)
         with conn.pipeline() as pipe:
             pipe.multi()
-            pipe.incr(count_key, 1)
-            pipe.expire(count_key, timedelta(seconds=10))
+            pipe.set(url, text)
+            pipe.expire(url, timedelta(seconds=10))
             pipe.execute()
-        return text
     return text
