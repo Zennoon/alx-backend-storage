@@ -26,6 +26,7 @@ def get_page(url: str) -> str:
     else:
         count_key = "count:{}".format(url)
         with conn.pipeline() as pipe:
+            pipe.multi()
             pipe.incr(count_key, 1)
             pipe.expire(count_key, timedelta(seconds=10))
             pipe.execute()
