@@ -11,6 +11,7 @@ Contains:
     times a url has been requested (given to the function), and
     caches the result for 10 seconds
 """
+from datetime import timedelta
 import redis
 import requests
 
@@ -18,12 +19,12 @@ import requests
 def get_page(url: str) -> str:
     """Receives a url and retrieves the decoded (utf-8) content"""
     conn = redis.Redis()
-    try:
-        text = requests.get(url).text
-    except Exception:
-        pass
-    else:
-        key = "count:{}".format(url)
-        conn.incr(key, 1)
-        conn.expire(key, 10)
-    return text
+    count_key = "count:{}".format(url)
+    text_key = "result:{}".format(url)
+    result = conn.get(text_key)
+    if result is not None:
+        conn.incr(count_key)
+        return result
+    result = requests.get(url).content.decode('utf-8')
+    conn.setex(text_key, timedelta(seconds=10), result)
+    return result
