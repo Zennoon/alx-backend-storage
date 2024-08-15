@@ -12,6 +12,7 @@ Contains:
     caches the result for 10 seconds
 """
 from datetime import timedelta
+import json
 import redis
 import requests
 
@@ -31,6 +32,6 @@ def get_page(url: str) -> str:
         except Exception:
             return ''
         else:
-            conn.set(url, text)
+            conn.set(url, json.dumps(text))
             conn.expire(url, timedelta(seconds=10))
-    return text.decode('utf-8')
+    return str(json.loads(text.decode('utf-8')))
