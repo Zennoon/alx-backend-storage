@@ -15,6 +15,8 @@ from datetime import timedelta
 import redis
 import requests
 
+conn = redis.Redis()
+
 
 def get_page(url: str) -> str:
     """Receives a url and retrieves the decoded (utf-8) content"""
@@ -27,6 +29,6 @@ def get_page(url: str) -> str:
         with conn.pipeline() as pipe:
             pipe.multi()
             pipe.set(url, text)
-            pipe.expire(url, timedelta(seconds=100))
+            pipe.expire(url, timedelta(seconds=10))
             pipe.execute()
     return text
