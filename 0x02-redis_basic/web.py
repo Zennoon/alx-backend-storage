@@ -15,7 +15,11 @@ conn = redis.Redis()
 
 def get_page(url: str) -> str:
     """Receives a url and retrieves the HTML content"""
-    conn.incr("count:{{}}".format(url), 1)
+    count_key = "count:{}".format(url)
+    if conn.get(count_key):
+        conn.incr(count_key, 1)
+    else:
+        conn.set(count_key, 0)
     text = ''
     try:
         text = requests.get(url).text
