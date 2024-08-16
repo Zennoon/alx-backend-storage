@@ -20,9 +20,9 @@ def get_page(url: str) -> str:
         conn.incr(count_key, 1)
     else:
         conn.set(count_key, 0)
-    text = ''
-    try:
-        text = requests.get(url).text
-    except Exception:
-        text = ''
+    text = conn.get(url)
+    if not text:
+        text = requests.get(url).content
+        conn.setex(url, 10, text)
+    text = text.decode("utf-8")
     return text
