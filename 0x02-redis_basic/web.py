@@ -28,10 +28,11 @@ def get_page(url: str) -> str:
     conn.incr(count_key, 1)
     if not text:
         try:
-            text = requests.get(url).text
+            text = requests.get(url).content
         except Exception:
             return ''
         else:
-            conn.set(url, json.dumps(text))
+            print(text)
+            conn.set(url, text)
             conn.expire(url, timedelta(seconds=10))
-    return str(json.loads(text.decode('utf-8')))
+    return text.decode('utf-8')
